@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>TRUST Business Simulator | Prototipo V0.2</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>TRUST Business Simulator | Plataforma Adaptativa V1.0</title>
 <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -12,13 +12,14 @@
     <div class="brandmark"><span>TRUST</span><b>SIM</b></div>
     <div>
       <div class="brand">Business Simulator</div>
-      <div class="subtitle">Plataforma de simulación empresarial · Prototipo V0.2</div>
+      <div class="subtitle">Plataforma de simulación empresarial · V1.0</div>
     </div>
   </div>
   <div class="top-actions">
-    <span class="status-dot"></span><span class="status-label">Entorno de prueba</span>
-    <button id="btnReset" class="ghost dark-ghost">Reiniciar</button>
-    <span class="badge">V0.2</span>
+    <div id="currentUserBadge" class="session-tag" style="background:#222621;color:#f0f3eb;border-color:#363b34">👨‍🏫 Profesor</div>
+    <button id="btnOpenLoginModal" type="button" class="ghost dark-ghost" style="font-size:12px">Cambiar Rol</button>
+    <button id="btnReset" type="button" class="ghost dark-ghost">Reiniciar</button>
+    <span class="badge">V1.0</span>
   </div>
 </header>
 
@@ -27,15 +28,15 @@
     <div class="hero card hero-brand">
       <div class="hero-copy">
         <span class="eyebrow">CONFIGURADOR DOCENTE</span>
-        <h1>Diseña el mercado. Configura las reglas. Deja que los equipos compitan.</h1>
-        <p>Crea una industria común, define la complejidad y el horizonte temporal, configura equipos, entorno económico, eventos y criterios de evaluación. El prototipo ya permite ejecutar rondas y observar el efecto competitivo de las decisiones.</p>
+        <h1>Diseña el mercado. Adapta la escala y el país. Conecta con la economía real.</h1>
+        <p>Configura desde una MYPE o Startup local hasta una Gran Corporación en cualquier país del mundo, eligiendo qué eventos incluir y sincronizando indicadores reales de Internet.</p>
         <div class="hero-chips">
-          <span>10 industrias</span><span>3 capas de complejidad</span><span>Competencia entre equipos</span><span>Eventos de mercado</span>
+          <span>5 escalas empresariales</span><span>Países globales</span><span>Vista Profesor y Estudiante</span><span>Exportación a Excel</span>
         </div>
       </div>
       <div class="hero-side">
-        <div class="hero-stat"><strong>10</strong><span>industrias iniciales</span></div>
-        <div class="hero-mini"><b>Diseñado para web</b><small>Arquitectura responsive y escalable para uso académico y empresarial.</small></div>
+        <div class="hero-stat"><strong>25+</strong><span>países + modo global libre</span></div>
+        <div class="hero-mini"><b>Adaptable a cualquier pantalla</b><small>Optimizado para móvil, tablet, laptop y proyector de aula.</small></div>
       </div>
     </div>
 
@@ -43,28 +44,33 @@
       <aside class="setup-rail card">
         <div class="rail-title">CREAR SIMULACIÓN</div>
         <div class="rail-steps">
-          <div class="rail-step active"><span>01</span><div><b>Industria y país</b><small>Contexto base</small></div></div>
+          <div class="rail-step active"><span>01</span><div><b>Industria, país y escala</b><small>Contexto y tamaño</small></div></div>
           <div class="rail-step"><span>02</span><div><b>Complejidad y tiempo</b><small>Capas habilitadas</small></div></div>
           <div class="rail-step"><span>03</span><div><b>Equipos</b><small>Competidores</small></div></div>
-          <div class="rail-step"><span>04</span><div><b>Macroeconomía</b><small>Entorno común</small></div></div>
-          <div class="rail-step"><span>05</span><div><b>Eventos</b><small>Incertidumbre</small></div></div>
+          <div class="rail-step"><span>04</span><div><b>Macroeconomía en vivo</b><small>Datos reales / Presets</small></div></div>
+          <div class="rail-step"><span>05</span><div><b>Eventos</b><small>Seleccionar cuáles incluir</small></div></div>
           <div class="rail-step"><span>06</span><div><b>Evaluación</b><small>Perfil de desempeño</small></div></div>
         </div>
-        <div class="rail-note"><span>●</span><div><b>Principio del simulador</b><small>Todos los equipos compiten dentro de una misma industria. Las decisiones de uno modifican el resultado relativo de los demás.</small></div></div>
+        <div class="rail-note"><span aria-hidden="true">●</span><div><b>Principio del simulador</b><small>Todos los equipos compiten dentro de una misma industria y escala. Las decisiones de uno modifican el resultado relativo de los demás.</small></div></div>
       </aside>
 
       <div class="setup-main">
         <div class="progress" id="progress"></div>
         <div class="card wizard">
           <div id="step1" class="step active">
-            <div class="step-head"><div><span class="step-kicker">PASO 1 DE 6</span><h2>Industria, país y escala</h2><p>Define el universo económico común para todos los equipos.</p></div><div class="step-icon">01</div></div>
+            <div class="step-head"><div><span class="step-kicker">PASO 1 DE 6</span><h2>Industria, país y escala empresarial</h2><p>Define el universo económico común, el país de operación y el tamaño de las empresas.</p></div><div class="step-icon">01</div></div>
             <div class="grid3">
               <label>Nombre de la simulación<input id="simName" value="Gestión Empresarial 2026-II" /></label>
               <label>Industria<select id="industry"></select></label>
               <label>Sector<input id="sector" disabled /></label>
-              <label>País<select id="country"></select></label>
-              <label>Moneda<input id="currency" disabled /></label>
-              <label>Tamaño empresarial<select id="size"><option>Pequeña</option><option selected>Mediana</option><option>Grande</option></select></label>
+              <label>País de operación<select id="country"></select></label>
+              <label>Moneda activa<input id="currency" disabled /></label>
+              <label>Escala empresarial<select id="size"></select></label>
+            </div>
+            <div id="customCountryFields" class="grid3 topgap" style="display:none">
+              <label>Nombre del país personalizado<input id="customCountryName" placeholder="Ej. Suiza, Marruecos, Singapur..." /></label>
+              <label>Símbolo monetario<input id="customCurrencySymbol" placeholder="Ej. CHF, MAD, S$" value="$" /></label>
+              <label>Nombre de la moneda<input id="customCurrencyName" placeholder="Ej. Franco suizo (CHF)" /></label>
             </div>
             <div class="industry-note" id="industryNote"></div>
           </div>
@@ -84,27 +90,31 @@
             <div class="step-head"><div><span class="step-kicker">PASO 3 DE 6</span><h2>Equipos competidores</h2><p>Cada equipo administra una empresa dentro del mismo mercado.</p></div><div class="step-icon">03</div></div>
             <div class="inline-form">
               <label>Número de equipos<input id="teamCount" type="number" min="2" max="12" value="4" /></label>
-              <button id="generateTeams" class="secondary">Generar equipos</button>
+              <button id="generateTeams" type="button" class="secondary">Generar equipos</button>
             </div>
-            <p class="muted info-line">Para universidad recomendamos código de estudiante. Para empresa, un código interno del participante. El DNI no es necesario para operar la simulación.</p>
+            <p class="muted info-line">Para universidad recomendamos código de estudiante. Para empresa o capacitación MYPE, un código interno del equipo.</p>
             <div id="teamsEditor" class="teams-editor"></div>
           </div>
 
           <div id="step4" class="step">
-            <div class="step-head"><div><span class="step-kicker">PASO 4 DE 6</span><h2>Entorno macroeconómico</h2><p>Selecciona un escenario base o personaliza sus variables.</p></div><div class="step-icon">04</div></div>
-            <div class="preset-row" id="macroPresets"></div>
+            <div class="step-head"><div><span class="step-kicker">PASO 4 DE 6</span><h2>Entorno macroeconómico</h2><p>Sincroniza indicadores reales del país desde Internet o selecciona un escenario predefinido.</p></div><div class="step-icon">04</div></div>
+            <div class="row-between">
+              <div class="preset-row" id="macroPresets"></div>
+              <button id="btnSyncLiveMacro" type="button" class="secondary">🌐 Sincronizar economía real de Internet</button>
+            </div>
             <div class="grid4 topgap">
               <label>Inflación anual (%)<input id="inflation" type="number" step="0.1" value="3.0" /></label>
-              <label>Crecimiento económico (%)<input id="gdp" type="number" step="0.1" value="3.2" /></label>
+              <label>Crecimiento económico PIB (%)<input id="gdp" type="number" step="0.1" value="3.2" /></label>
               <label>Tasa de interés anual (%)<input id="interest" type="number" step="0.1" value="8.5" /></label>
               <label>Crecimiento base de demanda (%)<input id="demandGrowth" type="number" step="0.1" value="5.0" /></label>
             </div>
+            <div id="macroSourceInfo" class="industry-note"></div>
           </div>
 
           <div id="step5" class="step">
-            <div class="step-head"><div><span class="step-kicker">PASO 5 DE 6</span><h2>Eventos e incertidumbre</h2><p>Los eventos macro o sectoriales afectan al conjunto de la industria.</p></div><div class="step-icon">05</div></div>
+            <div class="step-head"><div><span class="step-kicker">PASO 5 DE 6</span><h2>Eventos e incertidumbre</h2><p>Marca o desmarca libremente qué eventos deseas incluir en la simulación.</p></div><div class="step-icon">05</div></div>
             <div class="event-options">
-              <label class="toggle"><input id="eventsEnabled" type="checkbox" checked><span></span>Activar eventos</label>
+              <label class="toggle"><input id="eventsEnabled" type="checkbox" checked><span></span>Activar eventos en la partida</label>
               <label class="toggle"><input id="surpriseEvents" type="checkbox" checked><span></span>Permitir eventos sorpresivos</label>
             </div>
             <div id="eventCatalog" class="event-catalog"></div>
@@ -125,8 +135,8 @@
           </div>
 
           <div class="wizard-actions">
-            <button id="prevBtn" class="ghost" disabled>← Anterior</button>
-            <button id="nextBtn" class="primary">Continuar →</button>
+            <button id="prevBtn" type="button" class="ghost" disabled>← Anterior</button>
+            <button id="nextBtn" type="button" class="primary">Continuar →</button>
           </div>
         </div>
       </div>
@@ -138,24 +148,38 @@
       <aside class="sim-sidebar">
         <div class="sim-brand"><span>TRUST</span><b>SIM</b></div>
         <div class="sim-nav-label">SIMULACIÓN</div>
-        <div class="sim-nav">
-          <button class="tab active" data-tab="decisions"><span>01</span>Decisiones</button>
-          <button class="tab" data-tab="results"><span>02</span>Resultados</button>
-          <button class="tab" data-tab="history"><span>03</span>Historia</button>
-          <button class="tab" data-tab="config"><span>04</span>Configuración</button>
-        </div>
-        <div class="sim-side-note"><b>Motor competitivo</b><small>La demanda se reparte según el atractivo relativo de las empresas participantes.</small></div>
+        <nav class="sim-nav" aria-label="Navegación de simulación">
+          <button type="button" class="tab active" data-tab="decisions"><span>01</span>Decisiones</button>
+          <button type="button" class="tab" data-tab="results"><span>02</span>Resultados</button>
+          <button type="button" class="tab" data-tab="history"><span>03</span>Historia</button>
+          <button type="button" id="tabBtnTeacher" class="tab" data-tab="teacher"><span>04</span>Panel Profesor</button>
+          <button type="button" class="tab" data-tab="config"><span>05</span>Configuración</button>
+        </nav>
+        <div class="sim-side-note"><b>Modo de Vista</b><small>Cambia entre la vista del Profesor y la vista individual de cada equipo de estudiantes.</small></div>
       </aside>
 
       <div class="sim-content">
         <div class="sim-header card">
           <div><span class="eyebrow">SIMULACIÓN ACTIVA</span><h2 id="simTitle"></h2><p id="simMeta"></p></div>
-          <div class="round-box"><span>RONDA</span><strong id="currentRound">1</strong><small id="roundUnit"></small></div>
+          <div class="sim-user-session">
+            <div>
+              <span class="muted" style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;display:block">Sesión Activa</span>
+              <div id="simUserSessionTag" class="session-tag">👨‍🏫 Profesor (Control Total)</div>
+            </div>
+            <button id="btnSimSwitchUser" type="button" class="ghost" style="font-size:11px;padding:7px 11px">🚪 Cambiar Usuario</button>
+            <div class="round-box"><span>RONDA</span><strong id="currentRound">1</strong><small id="roundUnit"></small></div>
+          </div>
         </div>
 
         <section id="tab-decisions" class="tabpane active">
           <div class="card action-head">
-            <div class="row-between"><div><span class="section-kicker">CENTRO DE DECISIONES</span><h3>Decisiones por equipo</h3><p class="muted">Todos compiten por la misma demanda agregada de la industria.</p></div><button id="runRound" class="primary">Cerrar y simular ronda →</button></div>
+            <div class="row-between">
+              <div><span class="section-kicker" id="decisionViewKicker">CENTRO DE DECISIONES</span><h3 id="decisionViewTitle">Decisiones por equipo</h3><p class="muted" id="decisionViewDesc">Todos compiten por la misma demanda agregada ajustada a la escala empresarial.</p></div>
+              <div>
+                <button id="runRound" type="button" class="primary">Cerrar y simular ronda →</button>
+                <button id="btnSaveStudentDecision" type="button" class="secondary" style="display:none">💾 Guardar decisión de mi equipo</button>
+              </div>
+            </div>
             <div id="roundEvent" class="round-event"></div>
           </div>
           <div id="decisionCards" class="decision-grid"></div>
@@ -164,8 +188,9 @@
         <section id="tab-results" class="tabpane">
           <div class="section-title"><div><span class="section-kicker">RESULTADOS DE INDUSTRIA</span><h3>Desempeño de la ronda</h3></div></div>
           <div class="kpis" id="industryKpis"></div>
-          <div class="card"><div class="card-title-row"><div><span class="section-kicker">BENCHMARKING</span><h3>Ranking de la ronda</h3></div></div><div class="tablewrap"><table id="resultsTable"></table></div></div>
-          <div class="card coach-card"><div class="coach-mark">AI</div><div><span class="section-kicker">COACH PEDAGÓGICO</span><h3>Lectura para la discusión</h3><div id="coachText" class="coach"></div></div></div>
+          <div class="card"><div class="card-title-row"><div><span class="section-kicker">BENCHMARKING COMPETITIVO</span><h3 id="rankingTableCaption">Ranking y Estado de Resultados</h3></div></div><div class="tablewrap" tabindex="0" role="region" aria-labelledby="rankingTableCaption"><table id="resultsTable"></table></div></div>
+          <div class="card topgap"><div class="card-title-row"><div><span class="section-kicker">OPERACIONES Y BALANCE (NIVEL TOPSIM)</span><h3 id="financeTableCaption">Inventarios, Liquidez, Rescate Bancario y Segmentos</h3></div></div><div class="tablewrap" tabindex="0" role="region" aria-labelledby="financeTableCaption"><table id="financeOpsTable"></table></div></div>
+          <div class="card coach-card"><div class="coach-mark" aria-hidden="true">AI</div><div><span class="section-kicker">COACH PEDAGÓGICO</span><h3>Lectura sencilla para la clase</h3><div id="coachText" class="coach"></div></div></div>
         </section>
 
         <section id="tab-history" class="tabpane">
@@ -173,16 +198,27 @@
           <div class="card"><div id="historyCards" class="history-grid"></div></div>
         </section>
 
+        <section id="tab-teacher" class="tabpane">
+          <div class="card action-head">
+            <div class="row-between">
+              <div><span class="section-kicker">USO EXCLUSIVO DEL PROFESOR</span><h3>Guía de la Clase y Acta de Calificaciones</h3><p class="muted">Revisa la jugada ideal de la ronda, el desempeño de cada equipo y descarga el reporte directo en Excel.</p></div>
+              <button id="btnExportExcel" type="button" class="secondary">📊 Descargar Notas y Resultados en Excel (.xls)</button>
+            </div>
+          </div>
+          <div class="card"><div class="card-title-row"><div><span class="section-kicker">ASISTENTE DOCENTE DE IA</span><h3>Guía Rápida para el Profesor</h3></div></div><div id="aiBrainsTelemetry"></div></div>
+          <div class="card topgap"><div class="card-title-row"><div><span class="section-kicker">ACTA DE EVALUACIÓN ACADÉMICA</span><h3 id="gradesTableCaption">Calificación Sugerida (Escala 0-20 y 0-100)</h3></div></div><div class="tablewrap" tabindex="0" role="region" aria-labelledby="gradesTableCaption"><table id="teacherGradesTable"></table></div></div>
+        </section>
+
         <section id="tab-config" class="tabpane">
-          <div class="section-title"><div><span class="section-kicker">CONFIGURACIÓN</span><h3>Parámetros vigentes</h3></div></div>
-          <div class="card"><pre id="configDump"></pre></div>
+          <div class="section-title"><div><span class="section-kicker">CONFIGURACIÓN</span><h3>Resumen visual de parámetros vigentes</h3></div></div>
+          <div id="configVisualPanel"></div>
         </section>
       </div>
     </div>
   </section>
 </main>
 
-<footer><span>TRUST Business Simulator · Prototipo</span><span>Elaborado por Miguel Segura Verano para el uso de 1122Lab</span></footer>
-<script src="app.js"></script>
+<footer><span>TRUST Business Simulator · Arquitectura N-Capas Adaptativa</span><span>Elaborado por Miguel Segura Verano para el uso de 1122Lab</span></footer>
+<script type="module" src="app.js"></script>
 </body>
 </html>

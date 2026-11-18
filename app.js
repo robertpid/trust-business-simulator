@@ -1,77 +1,32 @@
-const industries = {
-  textile:{name:'Textil y confecciones',sector:'Manufactura',note:'Precio, producción, inventario, calidad y tendencia.',baseDemand:120000,basePrice:85,varCost:38,weights:{price:.35,quality:.25,marketing:.20,service:.05,availability:.15}},
-  food:{name:'Alimentos procesados',sector:'Manufactura / Alimentos',note:'Costos, capacidad, inocuidad, distribución y demanda.',baseDemand:150000,basePrice:12,varCost:5.8,weights:{price:.25,quality:.30,marketing:.20,service:.05,availability:.20}},
-  cafe:{name:'Cafeterías',sector:'Servicios / Alimentos',note:'Precio, experiencia, personal, calidad y capacidad de atención.',baseDemand:50000,basePrice:16,varCost:6.5,weights:{price:.20,quality:.25,marketing:.20,service:.25,availability:.10}},
-  restaurant:{name:'Restaurantes',sector:'Servicios / Alimentos',note:'Capacidad, personal, insumos, desperdicios y satisfacción.',baseDemand:30000,basePrice:42,varCost:18,weights:{price:.15,quality:.30,marketing:.15,service:.30,availability:.10}},
-  retail:{name:'Comercio minorista',sector:'Comercio',note:'Compras, precios, inventario, surtido y promociones.',baseDemand:100000,basePrice:55,varCost:33,weights:{price:.35,quality:.10,marketing:.15,service:.15,availability:.25}},
-  ecommerce:{name:'Comercio electrónico',sector:'Comercio digital',note:'Marketing digital, conversión, inventario, logística y servicio.',baseDemand:90000,basePrice:70,varCost:40,weights:{price:.25,quality:.10,marketing:.25,service:.20,availability:.20}},
-  consulting:{name:'Consultoría empresarial',sector:'Servicios profesionales',note:'Talento, productividad, tarifas, reputación y utilización.',baseDemand:6000,basePrice:1200,varCost:520,weights:{price:.10,quality:.35,marketing:.10,service:.35,availability:.10}},
-  saas:{name:'Software SaaS',sector:'Tecnología',note:'Captación, producto, precio, retención e innovación.',baseDemand:25000,basePrice:55,varCost:9,weights:{price:.15,quality:.20,marketing:.20,service:.15,availability:.30}},
-  agro:{name:'Agroindustria',sector:'Agroindustrial',note:'Rendimiento, calidad, costos, estacionalidad y comercialización.',baseDemand:110000,basePrice:18,varCost:9,weights:{price:.25,quality:.35,marketing:.10,service:.05,availability:.25}},
-  cosmetics:{name:'Cosméticos y cuidado personal',sector:'Manufactura / Consumo',note:'Marca, innovación, calidad, marketing y canales.',baseDemand:80000,basePrice:48,varCost:19,weights:{price:.15,quality:.30,marketing:.30,service:.05,availability:.20}}
-};
-const countries={PE:['Perú','PEN — Sol peruano (S/)'],CO:['Colombia','COP — Peso colombiano ($)'],CL:['Chile','CLP — Peso chileno ($)'],MX:['México','MXN — Peso mexicano ($)'],AR:['Argentina','ARS — Peso argentino ($)'],BR:['Brasil','BRL — Real brasileño (R$)'],EC:['Ecuador','USD — Dólar estadounidense (US$)'],US:['Estados Unidos','USD — Dólar estadounidense (US$)'],ES:['España','EUR — Euro (€)']};
-const complexity={1:{name:'Nivel 1 — Fundamentos',desc:'Decisiones esenciales para comprender la relación entre precio, demanda, costos y resultado.',modules:['Comercial','Marketing básico','Compras/Producción','Personas','Inventario','Caja','Estado de resultados']},2:{name:'Nivel 2 — Gestión empresarial',desc:'Añade capacidad, calidad, inversiones, capital de trabajo, financiamiento, ratios y logística.',modules:['Comercial','Marketing','Operaciones','Inventarios','Calidad','Inversiones','Personas','Finanzas','Capital de trabajo','Logística','Ratios']},3:{name:'Nivel 3 — Dirección estratégica',desc:'Añade múltiples mercados, comercio exterior, divisas, I+D, riesgo y decisiones estratégicas.',modules:['Comercial','Marketing','Operaciones','Calidad','Inversiones','Personas','Finanzas avanzadas','Logística','Comercio exterior','Tipo de cambio','I+D','Riesgo','Estrategia']}};
-const macroPresets={Estable:[3,3.2,8.5,5],Crecimiento:[4,5.5,9,9],Volátil:[7,2,13,3],Recesivo:[6,-2,14,-5]};
-const evalPresets={Equilibrado:[20,20,20,20,20],Finanzas:[45,15,15,10,15],Comercial:[20,45,10,10,15],Operaciones:[20,10,45,10,15],Personas:[15,10,15,45,15],Estratégico:[20,20,20,10,30]};
-const events=[
- {name:'Aumento de materias primas',text:'Incrementa el costo variable de toda la industria.',cost:1.12,demand:1},
- {name:'Expansión de la demanda',text:'El mercado crece por encima de lo previsto.',cost:1,demand:1.15},
- {name:'Contracción económica',text:'Se reduce la demanda agregada.',cost:1,demand:.88},
- {name:'Presión salarial',text:'Aumentan los costos asociados a personal.',cost:1.04,demand:1},
- {name:'Shock de eficiencia logística',text:'La disponibilidad efectiva se reduce temporalmente.',cost:1.03,demand:.97},
- {name:'Sin evento extraordinario',text:'La ronda sigue el escenario base.',cost:1,demand:1}
-];
-let currentStep=1, selectedComplexity=2, teams=[], config=null, round=1, history=[], lastResults=[];
-const $=id=>document.getElementById(id);
-function init(){
- Object.entries(industries).forEach(([k,v])=>$('industry').add(new Option(v.name,k)));
- Object.entries(countries).forEach(([k,v])=>$('country').add(new Option(v[0],k)));
- $('industry').value='textile';$('country').value='PE';syncIndustry();syncCountry();renderComplexity();renderProgress();renderMacroPresets();renderEvalPresets();renderEvents();generateTeams();bind();checkWeights();
-}
-function bind(){
- $('industry').onchange=syncIndustry;$('country').onchange=syncCountry;$('generateTeams').onclick=generateTeams;$('teamCount').onchange=generateTeams;
- $('nextBtn').onclick=()=>{if(currentStep<6){currentStep++;showStep()}else startSimulation()};$('prevBtn').onclick=()=>{if(currentStep>1){currentStep--;showStep()}};
- ['wFin','wMkt','wOps','wPeople','wStrat'].forEach(id=>$(id).oninput=checkWeights);
- $('btnReset').onclick=()=>{if(confirm('¿Reiniciar el prototipo y borrar la simulación actual?')) location.reload()};
- document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));$('runRound').onclick=runRound;
-}
-function syncIndustry(){const i=industries[$('industry').value];$('sector').value=i.sector;$('industryNote').innerHTML=`<strong>ADN:</strong> ${i.note} · Demanda base de prueba: ${i.baseDemand.toLocaleString('es-PE')} unidades.`}
-function syncCountry(){ $('currency').value=countries[$('country').value][1] }
-function renderProgress(){ $('progress').innerHTML=Array.from({length:6},(_,i)=>`<div class="${i<currentStep?'active':''}"></div>`).join('') }
-function showStep(){document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));$(`step${currentStep}`).classList.add('active');document.querySelectorAll('.rail-step').forEach((x,i)=>x.classList.toggle('active',i===currentStep-1));$('prevBtn').disabled=currentStep===1;$('nextBtn').textContent=currentStep===6?'Crear simulación →':'Continuar →';renderProgress()}
-function renderComplexity(){ $('complexityCards').innerHTML=Object.entries(complexity).map(([k,v])=>`<div class="complex-card ${+k===selectedComplexity?'selected':''}" data-cx="${k}"><h4>${v.name}</h4><p>${v.desc}</p></div>`).join('');document.querySelectorAll('.complex-card').forEach(c=>c.onclick=()=>{selectedComplexity=+c.dataset.cx;renderComplexity();renderModules()});renderModules() }
-function renderModules(){ $('moduleChips').innerHTML=complexity[selectedComplexity].modules.map(m=>`<span class="chip">${m}</span>`).join('') }
-function generateTeams(){const n=Math.max(2,Math.min(12,+$('teamCount').value||4));teams=Array.from({length:n},(_,i)=>({name:`Empresa ${String.fromCharCode(65+i)}`,code:`EQ-${String(i+1).padStart(2,'0')}`}));$('teamsEditor').innerHTML=teams.map((t,i)=>`<div class="team-edit"><strong>Equipo ${i+1}</strong><label>Nombre<input data-team="${i}" data-field="name" value="${t.name}"></label><label>Código<input data-team="${i}" data-field="code" value="${t.code}"></label></div>`).join('');document.querySelectorAll('[data-team]').forEach(x=>x.oninput=()=>teams[+x.dataset.team][x.dataset.field]=x.value)}
-function renderMacroPresets(){ $('macroPresets').innerHTML=Object.entries(macroPresets).map(([k])=>`<button class="preset ${k==='Estable'?'selected':''}" data-macro="${k}">${k}</button>`).join('');document.querySelectorAll('[data-macro]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-macro]').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');let v=macroPresets[b.dataset.macro];['inflation','gdp','interest','demandGrowth'].forEach((id,i)=>$(id).value=v[i])}) }
-function renderEvalPresets(){ $('evaluationPresets').innerHTML=Object.keys(evalPresets).map(k=>`<button class="preset ${k==='Equilibrado'?'selected':''}" data-eval="${k}">${k}</button>`).join('');document.querySelectorAll('[data-eval]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-eval]').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');let v=evalPresets[b.dataset.eval];['wFin','wMkt','wOps','wPeople','wStrat'].forEach((id,i)=>$(id).value=v[i]);checkWeights()}) }
-function renderEvents(){ $('eventCatalog').innerHTML=events.slice(0,-1).map((e,i)=>`<div class="event-item"><h4>${e.name}</h4><p>${e.text}</p></div>`).join('') }
-function checkWeights(){const sum=['wFin','wMkt','wOps','wPeople','wStrat'].reduce((a,id)=>a+(+$(id).value||0),0);$('weightsCheck').className='validation '+(sum===100?'good':'bad');$('weightsCheck').textContent=sum===100?'Ponderaciones correctas: 100%.':`Las ponderaciones suman ${sum}%. Deben sumar 100%.`}
-function startSimulation(){
- const sum=['wFin','wMkt','wOps','wPeople','wStrat'].reduce((a,id)=>a+(+$(id).value||0),0);if(sum!==100){alert('Las ponderaciones de evaluación deben sumar 100%.');return}
- config={name:$('simName').value,industry:$('industry').value,country:$('country').value,currency:$('currency').value,size:$('size').value,complexity:selectedComplexity,roundDuration:$('roundDuration').value,rounds:+$('rounds').value,practice:+$('practiceRounds').value,macro:{inflation:+$('inflation').value,gdp:+$('gdp').value,interest:+$('interest').value,demandGrowth:+$('demandGrowth').value},eventsEnabled:$('eventsEnabled').checked,surprise:$('surpriseEvents').checked,weights:['wFin','wMkt','wOps','wPeople','wStrat'].map(id=>+$(id).value),weightsVisible:$('weightsVisible').checked,teams:JSON.parse(JSON.stringify(teams))};
- localStorage.setItem('sim1122-config',JSON.stringify(config));$('setupView').classList.remove('active');$('simView').classList.add('active');$('simTitle').textContent=config.name;$('simMeta').textContent=`${industries[config.industry].name} · ${countries[config.country][0]} · ${config.currency} · ${complexity[config.complexity].name}`;$('roundUnit').textContent=config.roundDuration;$('configDump').textContent=JSON.stringify(config,null,2);renderDecisionCards();setRoundEvent();
-}
-function decisionDefaults(i){const ind=industries[config.industry];return {price:+(ind.basePrice*(.95+i*.03)).toFixed(2),marketing:12000,quality:65,service:65,capacity:Math.ceil(ind.baseDemand/config.teams.length*1.15),people:50,innovation:55,reason:''}}
-function renderDecisionCards(){ $('decisionCards').innerHTML=config.teams.map((t,i)=>{let d=decisionDefaults(i);return `<div class="decision-card" data-card="${i}"><h4>${t.name}</h4><span class="muted">${t.code}</span><div class="inputs"><label>Precio<input data-d="price" type="number" step="0.01" value="${d.price}"></label><label>Marketing<input data-d="marketing" type="number" step="100" value="${d.marketing}"></label><label>Calidad (0-100)<input data-d="quality" type="number" min="0" max="100" value="${d.quality}"></label><label>Servicio (0-100)<input data-d="service" type="number" min="0" max="100" value="${d.service}"></label><label>Capacidad<input data-d="capacity" type="number" step="100" value="${d.capacity}"></label><label>${config.complexity===3?'Innovación':'Personas'}<input data-d="${config.complexity===3?'innovation':'people'}" type="number" value="${config.complexity===3?d.innovation:d.people}"></label></div><label class="topgap">Justificación estratégica<textarea data-d="reason" placeholder="¿Por qué tomaron estas decisiones?"></textarea></label></div>`}).join('') }
-let activeEvent=events[events.length-1];
-function setRoundEvent(){ if(!config.eventsEnabled){activeEvent=events[events.length-1]}else{const idx=(round*3+config.teams.length+config.industry.length)%events.length;activeEvent=events[idx]}$('roundEvent').innerHTML=`<strong>Entorno de la ronda:</strong> ${config.surprise && activeEvent.name!=='Sin evento extraordinario'?'Evento revelado al cierre':' '+activeEvent.name} ${config.surprise && activeEvent.name!=='Sin evento extraordinario'?'':' — '+activeEvent.text}` }
-function collectDecisions(){return [...document.querySelectorAll('.decision-card')].map(card=>{let d={};card.querySelectorAll('[data-d]').forEach(x=>d[x.dataset.d]=x.tagName==='TEXTAREA'?x.value:+x.value);if(!('innovation' in d))d.innovation=50;if(!('people' in d))d.people=50;return d})}
-function runRound(){
- if(round>config.rounds){alert('La simulación ya completó todas las rondas configuradas.');return}
- const ind=industries[config.industry], decisions=collectDecisions();
- const growth=Math.pow(1+config.macro.demandGrowth/100,round-1);const totalDemand=ind.baseDemand*growth*activeEvent.demand;
- const avgPrice=decisions.reduce((a,d)=>a+d.price,0)/decisions.length;
- const attrs=decisions.map(d=>{const priceScore=Math.max(.25,Math.min(1.8,avgPrice/d.price));const mktScore=.7+Math.log10(1+Math.max(0,d.marketing))/6;const quality=.5+d.quality/100;const service=.5+d.service/100;const avail=.5+Math.min(1,d.capacity/(totalDemand/decisions.length))/2;const innov=.75+d.innovation/200;let w=ind.weights;return Math.pow(priceScore,w.price)*Math.pow(quality,w.quality)*Math.pow(mktScore,w.marketing)*Math.pow(service,w.service)*Math.pow(avail,w.availability)*(config.complexity===3?innov:1)});
- const attrSum=attrs.reduce((a,b)=>a+b,0);
- lastResults=decisions.map((d,i)=>{const share=attrs[i]/attrSum;const demand=totalDemand*share;const sales=Math.min(demand,d.capacity);const revenue=sales*d.price;const qualityCost=d.quality*d.quality*2.2;const peopleCost=d.people*420;const innovationCost=config.complexity===3?d.innovation*700:0;const variable=sales*ind.varCost*activeEvent.cost*(1+config.macro.inflation/100/4);const fixed=180000*(config.size==='Pequeña'?.65:config.size==='Grande'?1.6:1);const profit=revenue-variable-d.marketing-qualityCost-peopleCost-innovationCost-fixed;const margin=revenue?profit/revenue:0;const ops=Math.min(1,sales/d.capacity);const market=share;const peopleScore=Math.min(1,d.people/60);const strat=Math.max(0,Math.min(1,(margin+.15)/.35))*.55+Math.min(1,d.quality/100)*.2+Math.min(1,d.innovation/100)*.25;const fin=Math.max(0,Math.min(1,(margin+.10)/.30));const score=(fin*config.weights[0]+market*config.weights[1]+ops*config.weights[2]+peopleScore*config.weights[3]+strat*config.weights[4]);return {team:config.teams[i].name,...d,share,sales,revenue,profit,margin,ops,score,reason:d.reason}}).sort((a,b)=>b.score-a.score);
- history.push({round,event:activeEvent.name,totalDemand,results:JSON.parse(JSON.stringify(lastResults))});renderResults(totalDemand);renderHistory();round++;$('currentRound').textContent=Math.min(round,config.rounds);setRoundEvent();switchTab('results');
-}
-function money(n){const sym=config.currency.includes('S/')?'S/':config.currency.includes('€')?'€':config.currency.includes('R$')?'R$':'$';return `${sym} ${Math.round(n).toLocaleString('es-PE')}`}
-function renderResults(totalDemand){const totalSales=lastResults.reduce((a,r)=>a+r.sales,0), totalRevenue=lastResults.reduce((a,r)=>a+r.revenue,0), totalProfit=lastResults.reduce((a,r)=>a+r.profit,0);$('industryKpis').innerHTML=`<div class="kpi"><span>Demanda industria</span><strong>${Math.round(totalDemand).toLocaleString('es-PE')}</strong></div><div class="kpi"><span>Ventas atendidas</span><strong>${Math.round(totalSales).toLocaleString('es-PE')}</strong></div><div class="kpi"><span>Ingresos industria</span><strong>${money(totalRevenue)}</strong></div><div class="kpi"><span>Utilidad industria</span><strong>${money(totalProfit)}</strong></div>`;
- $('resultsTable').innerHTML='<thead><tr><th>Equipo</th><th>Cuota</th><th>Ventas</th><th>Ingresos</th><th>Utilidad</th><th>Margen</th><th>Score</th></tr></thead><tbody>'+lastResults.map((r,i)=>`<tr class="${i===0?'rank1':''}"><td>${i+1}. ${r.team}</td><td>${(r.share*100).toFixed(1)}%</td><td>${Math.round(r.sales).toLocaleString('es-PE')}</td><td>${money(r.revenue)}</td><td>${money(r.profit)}</td><td>${(r.margin*100).toFixed(1)}%</td><td>${r.score.toFixed(1)}</td></tr>`).join('')+'</tbody>';
- const best=lastResults[0], worst=lastResults[lastResults.length-1];$('coachText').innerHTML=`<strong>${best.team}</strong> lidera el ranking de esta ronda con un score de ${best.score.toFixed(1)}. Su cuota fue ${(best.share*100).toFixed(1)}% y su margen ${(best.margin*100).toFixed(1)}%. <br><br><strong>Lectura para discusión:</strong> compare el precio, capacidad, calidad y gasto comercial de los equipos. ${worst.team} debería revisar si su combinación de decisiones está creando suficiente demanda y si su capacidad se está utilizando de forma eficiente. El simulador no recomienda una decisión concreta: busca que el equipo contraste su hipótesis con el resultado.`;
-}
-function renderHistory(){const names=config.teams.map(t=>t.name);$('historyCards').innerHTML=names.map(name=>{const vals=history.map(h=>h.results.find(r=>r.team===name)?.score||0),max=Math.max(1,...vals);return `<div class="history-card"><h4>${name}</h4><div class="spark">${vals.map((v,i)=>`<div class="bar ${i===vals.length-1?'last':''}" style="height:${Math.max(5,v/max*100)}%" title="R${i+1}: ${v.toFixed(1)}"></div>`).join('')}</div><p class="muted">Score por ronda: ${vals.map(v=>v.toFixed(1)).join(' · ')}</p></div>`}).join('')}
-function switchTab(name){document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));document.querySelectorAll('.tabpane').forEach(p=>p.classList.toggle('active',p.id===`tab-${name}`))}
-init();
+/**
+ * TRUST Business Simulator - Entry Point de la Aplicación
+ * 
+ * Re-exporta e inicializa la arquitectura modular de N-capas (Etapas 1, 2, 3 y 4
+ * con Motor de Grafos Causales, Base de Datos Vectorial y Analíticas Docentes).
+ */
+
+import './src/main.js';
+
+export * from './src/domain/constants.js';
+export * from './src/domain/models.js';
+export * from './src/domain/validators.js';
+export * from './src/business/macro_data_provider.js';
+export * from './src/business/demand_engine.js';
+export * from './src/business/attraction_engine.js';
+export * from './src/business/segment_engine.js';
+export * from './src/business/inventory_engine.js';
+export * from './src/business/accounting_engine.js';
+export * from './src/business/finance_engine.js';
+export * from './src/business/evaluation_engine.js';
+export * from './src/business/coach_service.js';
+export * from './src/business/ai/economic_causal_graph.js';
+export * from './src/business/ai/world_brain_ai.js';
+export * from './src/business/ai/strategist_brain_ai.js';
+export * from './src/business/ai/evaluator_coach_brain_ai.js';
+export * from './src/business/ai/ai_brain_orchestrator.js';
+export * from './src/business/academic_analytics_service.js';
+export * from './src/business/report_exporter_service.js';
+export * from './src/business/simulation_service.js';
+export * from './src/persistence/storage_adapter.js';
+export * from './src/persistence/vector_memory_store.js';
+export * from './src/persistence/simulation_repository.js';
